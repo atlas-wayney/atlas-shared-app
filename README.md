@@ -1,93 +1,239 @@
-# atlas-shared-app
+# Atlas Shared App
 
+Shared database entities, services, and APIs for the Atlas project. This library provides:
+- SQLModel-based entity definitions for cases, users, and clients
+- Repository layer for database operations
+- Service layer for business logic
+- FastAPI route definitions for REST APIs
 
+**Important:** Only use `table=True` if the table is meant to be created for all applications (like case, etc.). Application-specific tables should be defined in their respective application repositories.
 
-## Getting started
+### Examples
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/ymw0331/atlas-shared-app.git
-git branch -M main
-git push -uf origin main
+**Case entities** are meant for all applications (those will be created as db table with alembic_autoddl):
+```python
+class Case(CaseBase, AtlasBaseModel, table=True):
+    pass
 ```
 
-## Integrate with your tools
+**User entities** are only for `atlas-app-identity`:
+```python
+# leave this table to atlas-app-identity
+class User(UserBase, AtlasBaseModel, table=False):
+    pass
+```
 
-* [Set up project integrations](https://gitlab.com/ymw0331/atlas-shared-app/-/settings/integrations)
+**User entities** in `atlas-app-identity` (re-create the entity to create table):
+```python
+from atlas_shared_app import User as UserTable
 
-## Collaborate with your team
+class User(UserTable, table=True):
+    pass
+```
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
 
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+
+```bash
+pip install atlas-shared-app
+```
+
+Or install from source:
+
+```bash
+git clone https://github.com/yourusername/atlas-shared-app.git
+cd atlas-shared-app
+pip install -e .
+```
+
+## Requirements
+
+- Python >= 3.8
+- SQLModel 0.0.27
+- Pydantic 2.12.5
+- SQLAlchemy 2.0.45
+
+## Quick Start
+
+### Running the Example Application
+
+1. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your database credentials
+```
+
+2. Run the application:
+```bash
+# Install dependencies
+pip install -e .
+
+# Run the example app
+python -m atlas_shared_app.app
+```
+
+3. Access the API:
+- API docs: http://localhost:8000/docs
+- Health check: http://localhost:8000/health
+- Case APIs: http://localhost:8000/cases/v1/
+- Config APIs: http://localhost:8000/configs/v1/
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## Inherited Class Order and Column Order
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+The sequence of inherited classes matters for adjusting the table column order. The **last inherited class defines columns that appear first** in the table.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```python
+class AtlasCase(AtlasBaseModel, AtlasCaseBase, AtlasCasePrimaryKey, table=True):
+    pass
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+In this example:
+- Columns from `AtlasCasePrimaryKey` appear **first** in the table (last in inheritance)
+- Columns from `AtlasCaseBase` appear **second**
+- Columns from `AtlasBaseModel` appear **last** (first in inheritance)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+This is because Python's Method Resolution Order (MRO) processes classes from right to left, and SQLModel collects fields in that order.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Importing Entities
+
+```python
+from atlas_shared_app import (
+    Case,
+    CaseStatus,
+    CaseConfig,
+    CaseDocument,
+    CaseHistory,
+    CaseRemark,
+    User,
+    Client,
+)
+```
+
+### Using Case Entities
+
+```python
+from atlas_shared_app import Case, CaseStatus
+
+# Create a new case
+case = Case(
+    title="Customer Support Inquiry",
+    status=CaseStatus.OPEN,
+    client_id=1,
+    assigned_user_id=2
+)
+```
+
+### Using User Entity
+
+```python
+from atlas_shared_app import User
+
+# Create a new user
+user = User(
+    name="John Doe",
+    email="john@example.com"
+)
+```
+
+### Using Client Entity
+
+```python
+from atlas_shared_app import Client
+
+# Create a new client
+client = Client(
+    name="Acme Corporation",
+    contact_email="contact@acme.com"
+)
+```
+
+### Using APIs
+
+The library includes a reference FastAPI application (`atlas_shared_app/app.py`) that demonstrates how to register and use the APIs:
+
+```bash
+# Run the example application
+python -m atlas_shared_app.app
+
+# Or use uvicorn directly
+uvicorn atlas_shared_app.app:app --reload
+```
+
+**Create your own application:**
+
+```python
+from fastapi import FastAPI
+from atlas_shared_app import register_case_apis, register_case_config_apis
+
+app = FastAPI()
+
+# Define your database engine function
+async def get_engine():
+    return your_async_engine
+
+# Register the APIs
+register_case_apis(app, get_engine)
+register_case_config_apis(app, get_engine)
+```
+
+See the [APIs README](atlas_shared_app/apis/README.md) for detailed API documentation and the `example_custom_app.py` file for a complete integration example with authentication.
+
+## Module Structure
+
+```
+atlas_shared_app/
+├── case/             # Case-related entities
+│   ├── case.py
+│   ├── case_config.py
+│   ├── case_document.py
+│   ├── case_history.py
+│   └── case_remark.py
+├── user/             # User entities
+│   └── user.py
+├── client/           # Client entities
+│   └── client.py
+├── repositories/     # Data access layer
+├── services/         # Business logic layer
+└── utils/            # Utility modules
+```
+
+## Development
+
+### Setting up development environment
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/atlas-shared-app.git
+cd atlas-shared-app
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install in editable mode
+pip install -e .
+```
+
+### Running tests
+
+```bash
+pytest
+```
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
