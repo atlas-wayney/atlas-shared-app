@@ -19,10 +19,12 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          # install the package + its runtime deps from pyproject
-          # (requirements.txt carries a local editable path that doesn't exist in CI)
-          pip install -e .
-          pip install pytest pytest-asyncio pytest-cov aiosqlite greenlet ruff
+          # install the pinned deps, dropping the local editable self-reference
+          # (requirements.txt is a full freeze incl. pytest/fastapi/etc.)
+          sed '/-e .*atlas-shared-app/d' requirements.txt > ci-requirements.txt
+          pip install -r ci-requirements.txt
+          pip install -e . --no-deps
+          pip install ruff
 
       - name: Lint (ruff, non-blocking)
         continue-on-error: true
