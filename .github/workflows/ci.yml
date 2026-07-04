@@ -24,7 +24,9 @@ jobs:
           sed '/-e .*atlas-shared-app/d' requirements.txt > ci-requirements.txt
           pip install -r ci-requirements.txt
           pip install -e . --no-deps
-          pip install ruff
+          # httpx is a declared dependency but missing from the pinned freeze;
+          # required by starlette's TestClient in the tests
+          pip install httpx ruff
 
       - name: Lint (ruff, non-blocking)
         continue-on-error: true
