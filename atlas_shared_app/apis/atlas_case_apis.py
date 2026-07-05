@@ -99,4 +99,4 @@ async def get_cases_by_status(
         case_status = AtlasCaseStatus(status)
         return await service.get_by_status(case_status, curr_user)
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status: {status}")
+        raise HTTPException(status_code=400, detail=f"Invalid status: {status}")

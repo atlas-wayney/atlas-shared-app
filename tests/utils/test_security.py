@@ -156,7 +156,7 @@ async def test_verify_user_no_roles_for_app(mock_request, mock_settings, mock_cr
     with pytest.raises(HTTPException) as exc_info:
         await verify_user(mock_request, mock_settings, mock_credentials, scopes)
 
-    assert exc_info.value.status_code == 401
+    assert exc_info.value.status_code == 403
     assert "does not have roles" in exc_info.value.detail
 
 
@@ -183,7 +183,7 @@ async def test_verify_user_missing_scope(mock_request, mock_settings, mock_crede
     with pytest.raises(HTTPException) as exc_info:
         await verify_user(mock_request, mock_settings, mock_credentials, scopes)
 
-    assert exc_info.value.status_code == 401
+    assert exc_info.value.status_code == 403
     assert exc_info.value.detail == "Not enough permissions"
 
 
@@ -200,7 +200,7 @@ async def test_verify_viewer_inactive_user(inactive_user):
     with pytest.raises(HTTPException) as exc_info:
         await verify_viewer(inactive_user)
 
-    assert exc_info.value.status_code == 400
+    assert exc_info.value.status_code == 403
     assert exc_info.value.detail == "Inactive user"
 
 
@@ -217,7 +217,7 @@ async def test_verify_editor_inactive_user(inactive_user):
     with pytest.raises(HTTPException) as exc_info:
         await verify_editor(inactive_user)
 
-    assert exc_info.value.status_code == 400
+    assert exc_info.value.status_code == 403
     assert exc_info.value.detail == "Inactive user"
 
 
@@ -234,7 +234,7 @@ async def test_verify_admin_inactive_user(inactive_user):
     with pytest.raises(HTTPException) as exc_info:
         await verify_admin(inactive_user)
 
-    assert exc_info.value.status_code == 400
+    assert exc_info.value.status_code == 403
     assert exc_info.value.detail == "Inactive user"
 
 
